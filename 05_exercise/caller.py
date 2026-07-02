@@ -1,14 +1,16 @@
 import os
 import django
 
-
 # Set up Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "orm_skeleton.settings")
 django.setup()
 
 # Import your models here
 
-from main_app.models import Author, Book
+from main_app.models import Author, Book, Song, Artist, Product, Review
+
+from django.db.models import QuerySet
+
 # Create queries within functions
 
 
@@ -25,5 +27,46 @@ def delete_all_authors_without_books() -> None:
     for author in authors:
         if author.books.count() == 0:
             author.delete()
+
+
+def add_song_to_artist(artist_name: str, song_title: str) -> None:
+    artist = Artist.objects.get(name=artist_name)
+    song = Song.objects.get(title=song_title)
+    artist.songs.add(song)
+
+def get_songs_by_artist(artist_name: str) -> QuerySet:
+    artist = Artist.objects.get(name=artist_name)
+    songs = artist.songs.all().order_by("-id")
+    return songs
+
+def remove_song_from_artist(artist_name: str, song_title: str) -> None:
+    artist = Artist.objects.get(name=artist_name)
+    song = Song.objects.get(title = song_title)
+    artist.songs.remove(song)
+
+def calculate_average_rating_for_product_by_name(product_name: str) -> float:
+    product = Product.objects.get(name=product_name)
+    rating = sum(review.rating for review in product.reviews.all()) / product.reviews.count()
+    return rating
+
+def get_reviews_with_high_ratings(threshold: int) -> QuerySet[Review]:
+    return Review.objects.filter(review_rating__gte=threshold)
+
+def get_products_with_no_reviews() :
+    products = Product.objects.all().order_by("-name")
+    p_with_no_reviews = []
+
+    for product in products:
+        if product.reviews.count() == 0:
+            p_with_no_reviews.append(product)
+
+    return p_with_no_reviews
+
+def delete_products_without_reviews() -> None:
+    products = Product.objects.all()
+
+    for product in products:
+        if product.reviews.count() == 0:
+            product.delete()
 
 
