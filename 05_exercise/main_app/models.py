@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 
 # Create your models here.
@@ -27,4 +29,31 @@ class Review(models.Model):
     rating = models.PositiveIntegerField()
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
 
-    
+class Driver(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+
+class DrivingLicense(models.Model):
+    license_number = models.CharField(max_length=10, unique= True)
+    issue_date = models.DateField()
+    driver = models.OneToOneField(Driver, on_delete=models.CASCADE, related_name="license")
+
+    @property
+    def expiration_date(self):
+        return self.issue_date + timedelta(days=365)
+
+    def __str__(self) -> str:
+        return f"License with number: {self.license_number} expires on {self.expiration_date}!"
+
+class Owner(models.Model):
+    name = models.CharField(max_length = 50)
+
+class Car(models.Model):
+    model = models.CharField(max_length = 50)
+    year = models.PositiveIntegerField()
+    owner = models.ForeignKey(to=Owner, on_delete=models.CASCADE, related_name="cars", blank=True, null=True)
+
+class Registration(models.Model):
+    registration_number = models.CharField(max_length = 10, unique = True)
+    registration_date = models.DateField(null=True, blank=True)
+    car = models.OneToOneField(to=Car, on_delete=models.CASCADE, related_name="registration", blank=True, null=True)

@@ -7,9 +7,12 @@ django.setup()
 
 # Import your models here
 
-from main_app.models import Author, Book, Song, Artist, Product, Review
+from main_app.models import Author, Book, Song, Artist, Product, Review, DrivingLicense, Driver, Owner, Registration, \
+    Car
 
-from django.db.models import QuerySet
+from datetime import date, timedelta, datetime
+from django.db.models import QuerySet, Model
+
 
 # Create queries within functions
 
@@ -70,3 +73,24 @@ def delete_products_without_reviews() -> None:
             product.delete()
 
 
+
+def calculate_licenses_expiration_dates()-> str:
+    licenses = DrivingLicense.objects.order_by("-license_number")
+    return "\n".join(str(l) for l in licenses)
+
+def get_drivers_with_expired_licenses(due_date: date) -> QuerySet[Driver]:
+    return Driver.objects.filter(
+        license__issue_date__lt=due_date - timedelta(days=365),
+    )
+
+def register_car_by_owner(owner: Owner) -> str:
+    registration = Registration.objects.filter(car__isnull= True).first()
+    car = Car.objects.filter(registration__isnull= True).first()
+
+    registration.car = car
+    registration.registration_date = datetime.today()
+    registration.save()
+
+    car.owner = owner
+    car.save()
+    return f"Successfully registered {car.model} to {owner.name} with registration number {registration.registration_number}."
