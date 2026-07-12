@@ -2,6 +2,7 @@ from django.core.validators import MinValueValidator, RegexValidator,  MinLength
 from django.db import models
 from psycopg2._psycopg import Decimal
 
+from main_app.mixins import RechargeEnergyMixin
 from main_app.validators import name_validator
 
 
@@ -139,5 +140,87 @@ class DiscountedProduct(Product):
 
     class Meta:
         proxy = True
+
+
+class Hero(models.Model, RechargeEnergyMixin):
+    REQUIRED_ENERGY: int = 0
+
+    name = models.CharField(
+        max_length=100,
+    )
+    hero_title = models.CharField(
+        max_length=100,
+    )
+    energy = models.PositiveIntegerField()
+
+    @property
+    def not_enough_energy_message(self) -> str:
+        raise NotImplemented
+
+    @property
+    def successful_ability_usage_message(self) -> str:
+        raise NotImplemented
+
+    def use_ability(self) -> str:
+        if self.energy < self.REQUIRED_ENERGY:
+            return self.not_enough_energy_message
+
+        self.energy = max(self.energy - self.REQUIRED_ENERGY, 1)
+
+        return self.successful_ability_usage_message
+
+
+class FlashHero(Hero):
+    REQUIRED_ENERGY: int = 65
+
+    @property
+    def not_enough_energy_message(self) -> str:
+        return f"{self.name} as Flash Hero needs to recharge the speed force"
+
+    @property
+    def successful_ability_usage_message(self) -> str:
+        return f"{self.name} as Flash Hero runs at lightning speed, saving the day"
+
+    def run_at_super_speed(self) -> str:
+        return self.use_ability()
+
+    class Meta:
+        proxy = True
+
+
+class SpiderHero(Hero):
+    REQUIRED_ENERGY: int = 80
+
+    @property
+    def not_enough_energy_message(self) -> str:
+        return f"{self.name} as Spider Hero is out of web shooter fluid"
+
+    @property
+    def successful_ability_usage_message(self) -> str:
+        return f"{self.name} as Spider Hero swings from buildings using web shooters"
+
+    def swing_from_buildings(self) -> str:
+        return self.use_ability()
+
+    class Meta:
+        proxy = True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
