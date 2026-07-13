@@ -1,8 +1,7 @@
 from decimal import Decimal
 
 from django.db import models
-from django.db.models import QuerySet, Q, Count
-
+from django.db.models import QuerySet, Q, Count, Avg
 
 
 class RealEstateListingManager(models.Manager):
@@ -25,3 +24,50 @@ class RealEstateListingManager(models.Manager):
                              .order_by('-location_count', 'location'))
 
         return popular_locations[:2]
+
+
+class VideoGameManager(models.Manager):
+
+    def games_by_genre(self, genre: str) -> QuerySet:
+        games = self.filter(genre=genre)
+        return games
+
+    def recently_released_games(self, year: int) -> QuerySet:
+        games = self.filter(release_year__gte=year)
+        return games
+
+
+    def highest_rated_game(self) -> QuerySet:
+        game = self.order_by('-rating').filter()
+
+        return game
+
+    def lowest_rated_game(self) -> QuerySet:
+        game = self.order_by('rating').filter()
+
+        return game
+
+    def average_rating(self) ->Decimal :
+
+        avg_rating = self.aggregate(avg_rating = Avg('rating'))
+
+        return Decimal(str(round(avg_rating['avg_rating'], 1)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
