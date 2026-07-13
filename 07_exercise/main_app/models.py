@@ -204,23 +204,3 @@ class SpiderHero(Hero):
 
     class Meta:
         proxy = True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
