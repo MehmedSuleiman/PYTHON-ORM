@@ -1,6 +1,8 @@
+from datetime import timedelta
+
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import QuerySet, F, Q
 
 from main_app.managers import RealEstateListingManager, VideoGameManager
 
@@ -120,6 +122,32 @@ class Task(models.Model):
     creation_date = models.DateField()
     completion_date = models.DateField()
 
+    @classmethod
+    def ongoing_high_priority_tasks(cls) -> QuerySet:
+        return (cls.objects.
+                filter(priority='High', is_completed=False, completion_date__gt= F('creation_date')))
+
+    @classmethod
+    def completed_mid_priority_tasks(cls) -> QuerySet:
+        return cls.objects.filter(
+            is_completed=True,
+            priority='Medium',
+        )
+
+    @classmethod
+    def search_tasks(cls, query: str) -> QuerySet:
+        return cls.objects.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+            # WHERE title ILIKE '%query%' OR description ILIKE '%query%';
+        )
+
+    @classmethod
+    def recent_completed_tasks(cls, days: int) -> QuerySet:
+        return cls.objects.filter(
+            is_completed=True,
+            completion_date__gte=F('creation_date') - timedelta(days=days)
+        )
+
 
 class Exercise(models.Model):
     name = models.CharField(max_length=100)
@@ -128,5 +156,31 @@ class Exercise(models.Model):
     duration_minutes = models.PositiveIntegerField()
     repetitions = models.PositiveIntegerField()
 
+    @classmethod
+    def get_long_and_hard_exercises(cls) -> QuerySet:
+        return cls.objects.filter(
+            duration_minutes__gt=30,
+            difficulty_level__gte=10,
+        )
+
+    @classmethod
+    def get_short_and_easy_exercises(cls) -> QuerySet:
+        return cls.objects.filter(
+            duration_minutes__lt=15,
+            difficulty_level__lt=5,
+        )
+
+    @classmethod
+    def get_exercises_within_duration(cls, min_duration: int, max_duration: int) -> QuerySet:
+        return cls.objects.filter(
+            duration_minutes__range=[min_duration, max_duration],
+        )  # BETWEEN min_duration AND max_duration
+
+    @classmethod
+    def get_exercises_with_difficulty_and_repetitions(cls, min_difficulty: int, min_repetitions: int) -> QuerySet:
+        return cls.objects.filter(
+            difficulty_level__gte=min_difficulty,
+            repetitions__gte=min_repetitions,
+        )
 
 #
