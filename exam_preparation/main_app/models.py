@@ -1,6 +1,7 @@
 from django.core.validators import MinLengthValidator, MinValueValidator
 from django.db import models
 
+from main_app.managers import AstronautManager
 from main_app.validators import phone_validator
 
 
@@ -37,6 +38,8 @@ class Astronaut(UpdatedTimeStamp):
     is_active = models.BooleanField(default=True)
     date_of_birth = models.DateField(null=True, blank= True)
     spacewalks = models.PositiveIntegerField(default=0)
+
+    objects = AstronautManager()
 
 class Spacecraft(UpdatedTimeStamp, LaunchTimeStamp):
     name = models.CharField(
