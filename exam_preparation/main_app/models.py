@@ -41,6 +41,10 @@ class Astronaut(UpdatedTimeStamp):
 
     objects = AstronautManager()
 
+    @property
+    def status(self):
+        return "Active" if self.is_active else "Inactive"
+
 class Spacecraft(UpdatedTimeStamp, LaunchTimeStamp):
     name = models.CharField(
         max_length=120,
@@ -104,3 +108,14 @@ class Mission(UpdatedTimeStamp, LaunchTimeStamp):
         blank=True,
         related_name='commander',
     )
+
+    @property
+    def comm_name(self):
+        return self.commander.name if self.commander else "TBA"
+
+    @property
+    def astr_names(self):
+        return ", ".join(astr.name for astr in self.astronauts.all())
+
+    def spacewalks(self):
+        return sum(astr.spacewalks for astr in self.astronauts.all())
